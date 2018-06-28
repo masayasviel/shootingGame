@@ -3,8 +3,11 @@ phina.globalize();
 
 var SCREEN_WIDTH  = 640; // 画面横サイズ
 var SCREEN_HEIGHT = 960; // 画面縦サイズ
-var enemyNum = 5; // enemyの数
+var enemyNum = 7; // enemyの数
+var existBullet = 10; // bulletの数
+var bulletNum; // bulletの数管理
 var killNum; // kill数
+var timeLimit = 30; // 制限時間
 var time;
 
 var ASSETS = {
@@ -45,14 +48,22 @@ phina.define('MainScene', {
   superClass: 'DisplayScene',
   init: function() {
     this.superInit();
+    // 初期値にリセット
     killNum = 0;
     time = 0;
+    bulletNum = existBullet;
     // kill数表示
     this.label_killed = Label({
       text: '',
       fontSize: 20,
       fill: '#FFFFFF',
     }).addChildTo(this).setPosition(580,920);
+    // 残弾数表示
+    this.label_bullet = Label({
+      text: '',
+      fontSize: 30,
+      fill: '#FFFFFF',
+    }).addChildTo(this).setPosition(this.gridX.center(),600);
     // 残り時間表示
     this.label_time = Label({
       text: '',
@@ -86,7 +97,10 @@ phina.define('MainScene', {
   },
   // タッチ時弾発射
   onpointstart: function(e) {
-    Bullet().addChildTo(this.bulletGroup).setPosition(e.pointer.x,e.pointer.y);
+    if(bulletNum >= 1){
+      Bullet().addChildTo(this.bulletGroup).setPosition(e.pointer.x,e.pointer.y);
+      bulletNum--;
+    }
   },
   // EnemyとPlayerの当たり判定処理
   hitTestEnemyPlayer: function() {
@@ -116,6 +130,7 @@ phina.define('MainScene', {
         if (Collision.testCircleCircle(c1,c3)) {
           killNum++;
           bullet.remove();
+          bulletNum++;
           enemy.remove();
           self.generateEnemy();
         }
@@ -123,13 +138,16 @@ phina.define('MainScene', {
     });
   },
   update: function(app){
+    // timeカウント
     time += app.deltaTime;
     var timed = Math.floor(time / 1000);
-    timeCount = 30 - timed;
+    timeCount = timeLimit - timed;
+
     this.label_time.text = '残り時間：' + timeCount;
     this.hitTestEnemyBullet();
     this.hitTestEnemyPlayer();
     this.label_killed.text = 'killed：' + killNum;
+    this.label_bullet.text = '残弾数：' + bulletNum;
     var self = this;
     if(timeCount <= 0){
       self.exit();
@@ -176,7 +194,8 @@ phina.define('Bullet',{
   },
   update: function(){
     if (this.top < 0) {
-      this.remove(); //自身を削除
+      this.remove();
+      bulletNum++;
     }
   }
 });
