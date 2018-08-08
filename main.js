@@ -258,7 +258,8 @@ phina.define('gravityEnemy',{
   superClass: 'Enemy',
   init:function(){
     this.superInit();
-    this.physical.gravity.y = 0.5;
+    let rand = Random.randint(0.3,0.7);
+    this.physical.gravity.y = rand;
   },
   update: function(){
     if (this.bottom > SCREEN_HEIGHT) {
